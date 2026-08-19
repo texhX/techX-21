@@ -11,6 +11,7 @@ import ReportFound from './pages/ReportFound';
 import LostItems from './pages/LostItems';
 import FoundItems from './pages/FoundItems';
 import Search from './pages/Search';
+import Matches from './pages/Matches';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -73,7 +74,7 @@ export default function App() {
               path="/matches"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Match Suggestions" phase="8 (Matching Engine)" />
+                  <Matches />
                 </ProtectedRoute>
               }
             />
