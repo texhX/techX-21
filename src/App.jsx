@@ -6,6 +6,8 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import ReportLost from './pages/ReportLost';
+import LostItems from './pages/LostItems';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -35,7 +37,7 @@ export default function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/lost-items" element={<PlaceholderPage title="Lost Items Directory" phase="5 (Lost Items)" />} />
+            <Route path="/lost-items" element={<LostItems />} />
             <Route path="/found-items" element={<PlaceholderPage title="Found Items Directory" phase="6 (Found Items)" />} />
             <Route path="/search" element={<PlaceholderPage title="Search & Filter Items" phase="7 (Search)" />} />
 
@@ -52,7 +54,7 @@ export default function App() {
               path="/report-lost"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Report Lost Item" phase="5 (Lost Items)" />
+                  <ReportLost />
                 </ProtectedRoute>
               }
             />
