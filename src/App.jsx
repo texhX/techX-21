@@ -13,23 +13,9 @@ import FoundItems from './pages/FoundItems';
 import Search from './pages/Search';
 import Matches from './pages/Matches';
 import Claims from './pages/Claims';
+import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
-
-// Placeholder views for subsequent phases
-function PlaceholderPage({ title, phase }) {
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
-      <div className="inline-block px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-3">
-        Phase {phase} Module
-      </div>
-      <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>
-      <p className="text-slate-400 max-w-md text-sm">
-        This view is authenticated and ready to be connected during Phase {phase} of development.
-      </p>
-    </div>
-  );
-}
 
 export default function App() {
   return (
@@ -93,7 +79,7 @@ export default function App() {
               path="/admin"
               element={
                 <AdminRoute>
-                  <PlaceholderPage title="Administrator Control Dashboard" phase="12 (Admin)" />
+                  <AdminDashboard />
                 </AdminRoute>
               }
             />
