@@ -3,63 +3,65 @@ import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 export const notificationService = {
   // Get notifications for user
   async getUserNotifications(userId) {
-    if (!isSupabaseConfigured || !userId) return [];
+    try {
+      const url = userId ? `/api/notifications?user_id=${userId}` : '/api/notifications';
+      const res = await fetch(url);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      // Fallback
+    }
 
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(30);
+    if (isSupabaseConfigured && userId) {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(30);
 
-    if (error) throw error;
-    return data || [];
+      if (error) throw error;
+      return data || [];
+    }
+
+    return [];
   },
 
   // Mark a notification as read
   async markAsRead(notificationId) {
-    if (!isSupabaseConfigured) return;
+    try {
+      await fetch(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
+    } catch (e) {
+      // Fallback
+    }
 
-    const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('id', notificationId);
-
-    if (error) throw error;
+    if (isSupabaseConfigured) {
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+    }
   },
 
-  // Mark all notifications for user as read
+  // Mark all notifications as read
   async markAllAsRead(userId) {
-    if (!isSupabaseConfigured || !userId) return;
+    try {
+      await fetch('/api/notifications/read-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId }),
+      });
+    } catch (e) {
+      // Fallback
+    }
 
-    const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('user_id', userId)
-      .eq('is_read', false);
-
-    if (error) throw error;
-  },
-
-  // Send / create a notification
-  async createNotification({ userId, title, message, type, referenceId }) {
-    if (!isSupabaseConfigured) return null;
-
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert([
-        {
-          user_id: userId,
-          title,
-          message,
-          type,
-          reference_id: referenceId,
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    if (isSupabaseConfigured && userId) {
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+    }
   },
 };

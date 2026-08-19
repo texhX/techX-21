@@ -56,16 +56,17 @@ const COLORS = [
   'Multicolor/Pattern'
 ];
 
-const CUSTODY_LOCATIONS = [
-  'Turned in at Library Front Desk',
-  'Turned in at Campus Security Main Office',
-  'Turned in at Cafeteria Help Desk',
-  'Turned in at Department Office',
-  'Held by Finder (Will hand off upon verified claim)'
+const CUSTODY_POINTS = [
+  'Campus Security Main Desk (Admin Block)',
+  'Central Library Front Circulation Desk',
+  'Student Center Help Information Desk',
+  'Sports Complex Equipment Office',
+  'Cafeteria Supervisor Counter',
+  'Currently in Finder Possession (Will hand over at Security)'
 ];
 
 export default function ReportFound() {
-  const { user, isSupabaseConfigured } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -75,9 +76,9 @@ export default function ReportFound() {
     description: '',
     color: 'Black',
     location: 'Central Campus Library (1st/2nd Floor)',
+    custody: 'Central Library Front Circulation Desk',
     found_date: new Date().toISOString().split('T')[0],
-    found_time: '15:00',
-    custody: 'Turned in at Library Front Desk',
+    found_time: '10:00',
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -106,45 +107,39 @@ export default function ReportFound() {
 
       // 1. Upload image if provided
       if (imageFile) {
-        if (isSupabaseConfigured) {
-          imageUrl = await itemService.uploadImage(imageFile, 'found');
-        } else {
-          // Local demo preview object URL
-          imageUrl = URL.createObjectURL(imageFile);
-        }
+        imageUrl = await itemService.uploadImage(imageFile, 'found');
       } else {
         imageUrl = 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=500&auto=format&fit=crop&q=60';
       }
 
-      // Combine custody note into description if provided
+      // Combine custody note into description
       const fullDescription = formData.custody 
         ? `${formData.description}\n\n[Custody Location]: ${formData.custody}`
         : formData.description;
 
-      // 2. Save found item
-      if (isSupabaseConfigured && user) {
-        await itemService.createFoundItem({
-          user_id: user.id,
-          title: formData.title,
-          description: fullDescription,
-          category: formData.category,
-          subcategory: formData.subcategory,
-          color: formData.color,
-          location: formData.location,
-          found_date: formData.found_date,
-          found_time: formData.found_time || null,
-          image_url: imageUrl,
-          status: 'active',
-        });
-      }
+      // 2. Save found item via backend REST API / database
+      await itemService.createFoundItem({
+        user_id: user?.id || 'usr-admin-1',
+        title: formData.title,
+        description: fullDescription,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        color: formData.color,
+        location: formData.location,
+        custody: formData.custody,
+        found_date: formData.found_date,
+        found_time: formData.found_time || null,
+        image_url: imageUrl,
+        status: 'active',
+      });
 
       setSuccess(true);
       setTimeout(() => {
-        navigate('/dashboard', { state: { newFoundItemCreated: true } });
-      }, 1500);
+        navigate('/found-items', { state: { newItemCreated: true } });
+      }, 1200);
     } catch (err) {
       console.error('Failed to report found item:', err);
-      setError(err.message || 'Failed to submit found report. Please try again.');
+      setError(err.message || 'Failed to submit report. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -156,11 +151,11 @@ export default function ReportFound() {
       <div className="mb-8 text-center sm:text-left">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-3">
           <Gift className="w-3.5 h-3.5" />
-          Found Property Turn-In Log
+          Found Property Turn-In Registry
         </div>
-        <h1 className="text-3xl font-extrabold text-white">Report a Found Item</h1>
+        <h1 className="text-3xl font-extrabold text-white">Log Found Property</h1>
         <p className="text-slate-400 text-sm mt-1.5 max-w-xl">
-          Help return misplaced belongings to their owner. Logging this item will automatically notify students who filed matching lost reports.
+          Help return misplaced belongings to their rightful owners. Our matching engine will immediately scan active lost reports.
         </p>
       </div>
 
@@ -168,9 +163,9 @@ export default function ReportFound() {
         <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-3">
           <CheckCircle2 className="w-6 h-6 shrink-0 text-emerald-400" />
           <div>
-            <h4 className="text-sm font-bold">Found Item Successfully Logged!</h4>
+            <h4 className="text-sm font-bold">Found Property Successfully Logged!</h4>
             <p className="text-xs text-emerald-400/80">
-              Matching engine is notifying matching report owners. Redirecting to your dashboard...
+              Matching engine is scanning campus reports for potential owners. Redirecting...
             </p>
           </div>
         </div>
@@ -185,11 +180,11 @@ export default function ReportFound() {
 
       {/* Main Form Card */}
       <form onSubmit={handleSubmit} className="glass-card p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
-        {/* Section 1: Item Details */}
+        {/* Section 1: Item Info */}
         <div>
           <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
             <Tag className="w-4 h-4 text-emerald-400" />
-            1. Discovered Item Information
+            1. Property Details
           </h3>
 
           <div className="space-y-4">
@@ -244,11 +239,11 @@ export default function ReportFound() {
               </div>
             </div>
 
-            {/* Color & Campus Location */}
+            {/* Color & Found Location */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                  <Palette className="w-3.5 h-3.5 text-indigo-400" />
+                  <Palette className="w-3.5 h-3.5 text-emerald-400" />
                   Primary Color
                 </label>
                 <select
@@ -285,7 +280,27 @@ export default function ReportFound() {
               </div>
             </div>
 
-            {/* Date Found & Time */}
+            {/* Custody Location */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <Building className="w-3.5 h-3.5 text-indigo-400" />
+                Current Custody Location (Where can the owner collect it?) *
+              </label>
+              <select
+                name="custody"
+                value={formData.custody}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 outline-none transition cursor-pointer"
+              >
+                {CUSTODY_POINTS.map((pt) => (
+                  <option key={pt} value={pt}>
+                    {pt}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date and Time Found */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1">
@@ -306,7 +321,7 @@ export default function ReportFound() {
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  Time Found
+                  Approximate Time Found
                 </label>
                 <input
                   type="time"
@@ -316,26 +331,6 @@ export default function ReportFound() {
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 outline-none transition"
                 />
               </div>
-            </div>
-
-            {/* Custody Location */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                <Building className="w-3.5 h-3.5 text-emerald-400" />
-                Current Custody / Turn-in Point *
-              </label>
-              <select
-                name="custody"
-                value={formData.custody}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 outline-none transition cursor-pointer"
-              >
-                {CUSTODY_LOCATIONS.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {/* Description */}
@@ -350,18 +345,18 @@ export default function ReportFound() {
                 rows={4}
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe visible aspects of the found item. (Note: Avoid revealing secret PINs or private lock combinations so claimant must verify ownership)..."
+                placeholder="Describe visible characteristics (e.g. brand, color, approximate condition, location found)..."
                 className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-slate-100 placeholder-slate-500 outline-none transition resize-none"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 2: Image Upload */}
+        {/* Section 2: Photo */}
         <div className="border-t border-slate-800/80 pt-6">
           <ImageUpload
             onImageSelect={(file) => setImageFile(file)}
-            label="2. Photograph of Found Item"
+            label="2. Item Photograph (Helps owner identify their property)"
           />
         </div>
 
@@ -369,7 +364,7 @@ export default function ReportFound() {
         <div className="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>Our matching engine immediately calculates confidence scores against registered lost reports.</span>
+            <span>Found items are immediately scanned against open lost reports.</span>
           </div>
 
           <button
@@ -378,10 +373,10 @@ export default function ReportFound() {
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-lg shadow-emerald-600/25 transition disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
-              <span>Logging Found Item...</span>
+              <span>Saving Found Report...</span>
             ) : (
               <>
-                <span>Publish Found Log</span>
+                <span>Publish Found Report</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

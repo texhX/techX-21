@@ -56,7 +56,7 @@ const COLORS = [
 ];
 
 export default function ReportLost() {
-  const { user, isSupabaseConfigured } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -96,38 +96,30 @@ export default function ReportLost() {
 
       // 1. Upload image if provided
       if (imageFile) {
-        if (isSupabaseConfigured) {
-          imageUrl = await itemService.uploadImage(imageFile, 'lost');
-        } else {
-          // Local demo preview object URL
-          imageUrl = URL.createObjectURL(imageFile);
-        }
+        imageUrl = await itemService.uploadImage(imageFile, 'lost');
       } else {
-        // Sample placeholder if none provided
         imageUrl = 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=500&auto=format&fit=crop&q=60';
       }
 
-      // 2. Save lost item
-      if (isSupabaseConfigured && user) {
-        await itemService.createLostItem({
-          user_id: user.id,
-          title: formData.title,
-          description: formData.description,
-          category: formData.category,
-          subcategory: formData.subcategory,
-          color: formData.color,
-          location: formData.location,
-          lost_date: formData.lost_date,
-          lost_time: formData.lost_time || null,
-          image_url: imageUrl,
-          status: 'active',
-        });
-      }
+      // 2. Save lost item via backend REST API / database
+      await itemService.createLostItem({
+        user_id: user?.id || 'usr-student-1',
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        color: formData.color,
+        location: formData.location,
+        lost_date: formData.lost_date,
+        lost_time: formData.lost_time || null,
+        image_url: imageUrl,
+        status: 'active',
+      });
 
       setSuccess(true);
       setTimeout(() => {
-        navigate('/dashboard', { state: { newItemCreated: true } });
-      }, 1500);
+        navigate('/lost-items', { state: { newItemCreated: true } });
+      }, 1200);
     } catch (err) {
       console.error('Failed to report lost item:', err);
       setError(err.message || 'Failed to submit report. Please try again.');
@@ -156,7 +148,7 @@ export default function ReportLost() {
           <div>
             <h4 className="text-sm font-bold">Lost Report Successfully Submitted!</h4>
             <p className="text-xs text-emerald-400/80">
-              Matching engine is scanning campus records. Redirecting to your dashboard...
+              Item added to directory. Scanning for matches... Redirecting...
             </p>
           </div>
         </div>

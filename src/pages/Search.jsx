@@ -117,11 +117,34 @@ const ALL_CATALOG_ITEMS = [
 ];
 
 export default function Search() {
-  const { isSupabaseConfigured } = useAuth();
   const [items, setItems] = useState(ALL_CATALOG_ITEMS);
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  useEffect(() => {
+    async function loadAllItems() {
+      setLoading(true);
+      try {
+        const [lost, found] = await Promise.all([
+          itemService.getLostItems({ status: 'all' }),
+          itemService.getFoundItems({ status: 'all' }),
+        ]);
+        const formattedLost = (lost || []).map((i) => ({ ...i, type: 'lost' }));
+        const formattedFound = (found || []).map((i) => ({ ...i, type: 'found' }));
+        const combined = [...formattedLost, ...formattedFound];
+        if (combined.length > 0) {
+          setItems(combined);
+        }
+      } catch (err) {
+        console.error('Error fetching search catalog:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAllItems();
+  }, []);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');

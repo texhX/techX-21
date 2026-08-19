@@ -1,0 +1,205 @@
+{
+  "users": [
+    {
+      "id": "usr-student-1",
+      "email": "alex@campus.edu",
+      "password": "password123",
+      "full_name": "Alex Johnson",
+      "college_id": "CS-2024-042",
+      "phone": "+1 (555) 019-2834",
+      "role": "student",
+      "avatar_url": null,
+      "created_at": "2026-08-10T09:00:00.000Z"
+    },
+    {
+      "id": "usr-admin-1",
+      "email": "admin@campus.edu",
+      "password": "adminpassword",
+      "full_name": "Dr. Sarah Mitchell",
+      "college_id": "STAFF-ADMIN-01",
+      "phone": "+1 (555) 012-9988",
+      "role": "admin",
+      "avatar_url": null,
+      "created_at": "2026-08-01T08:00:00.000Z"
+    },
+    {
+      "id": "usr-student-2",
+      "email": "emily@campus.edu",
+      "password": "password123",
+      "full_name": "Emily Davis",
+      "college_id": "BIO-2023-119",
+      "phone": "+1 (555) 014-7721",
+      "role": "student",
+      "avatar_url": null,
+      "created_at": "2026-08-12T10:00:00.000Z"
+    }
+  ],
+  "lost_items": [
+    {
+      "id": "lost-1787131421097",
+      "created_at": "2026-08-19T09:23:41.097Z",
+      "user_id": "demo-admin-uuid-0002",
+      "title": "Laptop",
+      "description": "loq laptop",
+      "category": "Electronics & Gadgets",
+      "subcategory": "",
+      "color": "Black",
+      "location": "Main Cafeteria & Food Court",
+      "lost_date": "2026-08-19",
+      "lost_time": "14:30",
+      "image_url": "/uploads/img-1787131421056-796307255.jpeg",
+      "status": "active"
+    },
+    {
+      "id": "lost-1787131307552",
+      "created_at": "2026-08-19T09:21:47.552Z",
+      "user_id": "usr-student-1",
+      "title": "Casio G-Shock Digital Watch",
+      "description": "Black matte watch with digital screen lost near cafeteria seating area",
+      "category": "Eyewear & Accessories",
+      "subcategory": "",
+      "color": "Other",
+      "location": "Main Cafeteria & Food Court",
+      "lost_date": "2026-08-19",
+      "lost_time": "",
+      "image_url": null,
+      "status": "active"
+    },
+    {
+      "id": "lost-item-1",
+      "user_id": "usr-student-1",
+      "title": "Black Leather Bifold Wallet",
+      "description": "Contains university student card, driver license, and metro pass.",
+      "category": "Wallets & Bags",
+      "subcategory": "Bifold Wallet",
+      "color": "Black",
+      "location": "Central Campus Library (1st/2nd Floor)",
+      "lost_date": "2026-08-18",
+      "lost_time": "14:30",
+      "image_url": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=500&auto=format&fit=crop&q=60",
+      "status": "matched",
+      "created_at": "2026-08-18T15:00:00.000Z"
+    },
+    {
+      "id": "lost-item-2",
+      "user_id": "usr-student-2",
+      "title": "Apple AirPods Pro (2nd Gen)",
+      "description": "White charging case with red silicone carabiner clip.",
+      "category": "Electronics & Gadgets",
+      "subcategory": "Headphones & Earbuds",
+      "color": "White",
+      "location": "Science Block (Room 302 / Labs)",
+      "lost_date": "2026-08-17",
+      "lost_time": "11:15",
+      "image_url": "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=500&auto=format&fit=crop&q=60",
+      "status": "active",
+      "created_at": "2026-08-17T12:00:00.000Z"
+    }
+  ],
+  "found_items": [
+    {
+      "id": "found-item-1",
+      "user_id": "usr-admin-1",
+      "title": "Black Leather Wallet with Student ID",
+      "description": "Black leather wallet found on a study desk. Handed to librarian desk staff.",
+      "category": "Wallets & Bags",
+      "subcategory": "Bifold Wallet",
+      "color": "Black",
+      "location": "Central Campus Library (1st/2nd Floor)",
+      "custody": "Library Front Desk",
+      "found_date": "2026-08-19",
+      "found_time": "10:00",
+      "image_url": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=500&auto=format&fit=crop&q=60",
+      "status": "matched",
+      "created_at": "2026-08-19T10:30:00.000Z"
+    },
+    {
+      "id": "found-item-2",
+      "user_id": "usr-admin-1",
+      "title": "Cobalt Blue Hydro Flask 32oz",
+      "description": "Found near basketball court bleachers.",
+      "category": "Water Bottles & Flasks",
+      "subcategory": "Stainless Steel Flask",
+      "color": "Blue",
+      "location": "Campus Sports Complex",
+      "custody": "Security Main Desk",
+      "found_date": "2026-08-18",
+      "found_time": "16:45",
+      "image_url": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500&auto=format&fit=crop&q=60",
+      "status": "active",
+      "created_at": "2026-08-18T17:00:00.000Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": "match-1",
+      "lost_item_id": "lost-item-1",
+      "found_item_id": "found-item-1",
+      "match_score": 94,
+      "category_score": 100,
+      "description_score": 88,
+      "location_score": 100,
+      "date_score": 95,
+      "color_score": 100,
+      "image_score": 90,
+      "match_reason": [
+        "Identical Category (Wallets & Bags)",
+        "Matching / Adjacent Location (Central Campus Library)",
+        "Dates align within 24–72 hours",
+        "Matching color profile (Black)",
+        "Textual description & keyword correlation"
+      ],
+      "status": "suggested",
+      "created_at": "2026-08-19T10:35:00.000Z"
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim-1",
+      "match_id": "match-1",
+      "found_item_id": "found-item-1",
+      "claimant_id": "usr-student-1",
+      "proof_message": "The black leather wallet contains an active university student ID with name Alex Johnson and roll number CS-2024-042, along with a transit card.",
+      "proof_image_url": "https://images.unsplash.com/photo-1544717305-2782549b5136?w=400&auto=format&fit=crop&q=60",
+      "status": "pending",
+      "admin_note": null,
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "created_at": "2026-08-19T11:00:00.000Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif-1",
+      "user_id": "usr-student-1",
+      "title": "High-Confidence Match (94%) Found!",
+      "message": "A Black Leather Wallet found at Central Campus Library matches your lost report.",
+      "type": "match_found",
+      "reference_id": "/matches?id=match-1",
+      "is_read": false,
+      "created_at": "2026-08-19T10:36:00.000Z"
+    },
+    {
+      "id": "notif-2",
+      "user_id": "usr-student-1",
+      "title": "Claim Submitted Successfully",
+      "message": "Your claim for Black Leather Wallet is currently under administrative review.",
+      "type": "claim_submitted",
+      "reference_id": "/claims",
+      "is_read": false,
+      "created_at": "2026-08-19T11:01:00.000Z"
+    }
+  ],
+  "admin_actions": [
+    {
+      "id": "log-1",
+      "admin_id": "usr-admin-1",
+      "admin_name": "Dr. Sarah Mitchell",
+      "action": "SYSTEM_INITIALIZATION",
+      "target_type": "system",
+      "target_id": "sys",
+      "description": "CampusFind AI database schema initialized with persistent storage.",
+      "timestamp": "2026-08-19T08:00:00.000Z"
+    }
+  ]
+}

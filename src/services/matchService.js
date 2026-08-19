@@ -1,49 +1,60 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 export const matchService = {
-  // Fetch matches for a specific user (either as lost item owner or found item reporter)
+  // Fetch matches for a specific user
   async getUserMatches(userId) {
-    if (!isSupabaseConfigured || !userId) return [];
+    try {
+      const res = await fetch('/api/matches');
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      // Fallback
+    }
 
-    const { data, error } = await supabase
-      .from('matches')
-      .select(`
-        *,
-        lost_item:lost_item_id (*, profiles:user_id(full_name, email)),
-        found_item:found_item_id (*, profiles:user_id(full_name, email))
-      `)
-      .order('match_score', { ascending: false });
+    if (isSupabaseConfigured && userId) {
+      const { data, error } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          lost_item:lost_item_id (*, profiles:user_id(full_name, email)),
+          found_item:found_item_id (*, profiles:user_id(full_name, email))
+        `)
+        .order('match_score', { ascending: false });
 
-    if (error) throw error;
-    return data || [];
+      if (error) throw error;
+      return data || [];
+    }
+
+    return [];
   },
 
-  // Save or update a match record in DB
+  // Save or update match record
   async createOrUpdateMatch(matchData) {
-    if (!isSupabaseConfigured) return null;
-
-    const { data, error } = await supabase
-      .from('matches')
-      .upsert(matchData, { onConflict: 'lost_item_id,found_item_id' })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('matches')
+        .upsert(matchData, { onConflict: 'lost_item_id,found_item_id' })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+    return matchData;
   },
 
-  // Update match status (accepted, rejected, expired)
+  // Update match status
   async updateMatchStatus(matchId, status) {
-    if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
-
-    const { data, error } = await supabase
-      .from('matches')
-      .update({ status })
-      .eq('id', matchId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('matches')
+        .update({ status })
+        .eq('id', matchId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+    return { id: matchId, status };
   },
 };

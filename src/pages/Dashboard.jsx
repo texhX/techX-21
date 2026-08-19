@@ -106,6 +106,28 @@ export default function Dashboard() {
   const [matches, setMatches] = useState(DEMO_DASHBOARD_DATA.matches);
   const [claims, setClaims] = useState(DEMO_DASHBOARD_DATA.claims);
 
+  useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        const [lost, found, userMatches, userClaims] = await Promise.all([
+          itemService.getLostItems({ status: 'all' }),
+          itemService.getFoundItems({ status: 'all' }),
+          matchService.getUserMatches(user?.id),
+          claimService.getUserClaims(user?.id),
+        ]);
+
+        if (lost && lost.length > 0) setLostItems(lost);
+        if (found && found.length > 0) setFoundItems(found);
+        if (userMatches && userMatches.length > 0) setMatches(userMatches);
+        if (userClaims && userClaims.length > 0) setClaims(userClaims);
+      } catch (err) {
+        console.error('Error fetching dashboard live data:', err);
+      }
+    }
+
+    loadDashboardData();
+  }, [user]);
+
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'Campus Student';
   const collegeId = profile?.college_id || user?.user_metadata?.college_id || 'ID Pending';
 
