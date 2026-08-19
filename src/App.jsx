@@ -12,6 +12,7 @@ import LostItems from './pages/LostItems';
 import FoundItems from './pages/FoundItems';
 import Search from './pages/Search';
 import Matches from './pages/Matches';
+import Claims from './pages/Claims';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -82,7 +83,7 @@ export default function App() {
               path="/claims"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Claim Tracking" phase="10 (Claims)" />
+                  <Claims />
                 </ProtectedRoute>
               }
             />
