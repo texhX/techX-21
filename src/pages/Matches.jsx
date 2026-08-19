@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { matchService } from '../services/matchService';
+import { aiMatchingAdapter } from '../services/aiMatchingAdapter';
 import MatchCard from '../components/MatchCard';
 import Modal from '../components/Modal';
 import Loading from '../components/Loading';
@@ -18,7 +19,8 @@ import {
   X, 
   ArrowRight,
   TrendingUp,
-  Cpu
+  Cpu,
+  Bot
 } from 'lucide-react';
 
 const DEMO_MATCHES = [
@@ -113,8 +115,9 @@ export default function Matches() {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [scoreFilter, setScoreFilter] = useState('all');
 
+  const aiStatus = aiMatchingAdapter.getAIStatus();
+
   useEffect(() => {
-    // Check if a match ID was passed via query parameter
     const matchId = searchParams.get('id');
     if (matchId) {
       const match = matches.find((m) => m.id === matchId);
@@ -170,22 +173,30 @@ export default function Matches() {
         </div>
       </div>
 
-      {/* Algorithm Transparency Card */}
+      {/* AI Architecture Transparency Card */}
       <div className="glass-card p-5 rounded-2xl border border-slate-800 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
-            <Cpu className="w-5 h-5" />
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+            <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Configured Scoring Weights</h3>
-            <p className="text-xs text-slate-400">
-              Category (25%) • Description Text (25%) • Campus Location (20%) • Date Proximity (15%) • Color (10%) • Visual (5%)
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-white">{aiStatus.provider}</h3>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                {aiStatus.mode}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5 max-w-2xl leading-relaxed">
+              {aiStatus.description}
             </p>
           </div>
         </div>
-        <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-          Deterministic & Fair Matching
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            Transparent Algorithm Active
+          </span>
+        </div>
       </div>
 
       {/* Matches Grid */}
@@ -368,13 +379,12 @@ export default function Matches() {
               </div>
             </div>
 
-            {/* Mathematical Factor Score Breakdown Bars */}
+            {/* Factor Score Breakdown Bars */}
             <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2.5">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
                 Attribute Similarity Breakdown
               </h4>
 
-              {/* Category */}
               <div>
                 <div className="flex justify-between text-[11px] font-medium text-slate-400 mb-1">
                   <span>Category Alignment (Weight: 25%)</span>
@@ -385,7 +395,6 @@ export default function Matches() {
                 </div>
               </div>
 
-              {/* Description */}
               <div>
                 <div className="flex justify-between text-[11px] font-medium text-slate-400 mb-1">
                   <span>Description Keyword Overlap (Weight: 25%)</span>
@@ -396,7 +405,6 @@ export default function Matches() {
                 </div>
               </div>
 
-              {/* Location */}
               <div>
                 <div className="flex justify-between text-[11px] font-medium text-slate-400 mb-1">
                   <span>Campus Proximity (Weight: 20%)</span>
@@ -407,7 +415,6 @@ export default function Matches() {
                 </div>
               </div>
 
-              {/* Date */}
               <div>
                 <div className="flex justify-between text-[11px] font-medium text-slate-400 mb-1">
                   <span>Temporal / Date Proximity (Weight: 15%)</span>

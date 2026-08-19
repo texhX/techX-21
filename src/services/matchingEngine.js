@@ -1,7 +1,9 @@
 // ==============================================================================
 // CAMPUSFIND AI — MODULAR WEIGHTED MATCHING ENGINE
-// Computes multi-attribute similarity between Lost and Found reports
+// Integrates with aiMatchingAdapter for multi-factor similarity
 // ==============================================================================
+
+import { aiMatchingAdapter } from './aiMatchingAdapter';
 
 export const MATCH_WEIGHTS = {
   category: 0.25,    // 25%
@@ -12,7 +14,6 @@ export const MATCH_WEIGHTS = {
   image: 0.05,       // 5%
 };
 
-// Common English & campus stopwords to clean during tokenization
 const STOPWORDS = new Set([
   'a', 'an', 'the', 'and', 'or', 'in', 'on', 'at', 'to', 'for', 'with',
   'by', 'about', 'like', 'through', 'over', 'before', 'between', 'after',
@@ -20,9 +21,6 @@ const STOPWORDS = new Set([
   'item', 'found', 'lost', 'please', 'help', 'near', 'inside'
 ]);
 
-/**
- * Tokenize and normalize text into unique significant keywords
- */
 export function tokenizeText(text) {
   if (!text) return [];
   return text
@@ -32,9 +30,6 @@ export function tokenizeText(text) {
     .filter((token) => token.length > 2 && !STOPWORDS.has(token));
 }
 
-/**
- * Calculate Jaccard text similarity between two strings
- */
 export function calculateTextSimilarity(textA, textB) {
   const tokensA = tokenizeText(textA);
   const tokensB = tokenizeText(textB);
@@ -53,18 +48,13 @@ export function calculateTextSimilarity(textA, textB) {
   return union > 0 ? intersection / union : 0;
 }
 
-/**
- * Calculate location proximity score between two campus zones
- */
 export function calculateLocationScore(locA, locB) {
   if (!locA || !locB) return 0.2;
   const a = locA.toLowerCase().trim();
   const b = locB.toLowerCase().trim();
 
-  // Exact location match
   if (a === b) return 1.0;
 
-  // Substring or shared building match (e.g. "Library" in both)
   const tokensA = a.split(/[\s,()/-]+/);
   const tokensB = b.split(/[\s,()/-]+/);
   const hasSharedBuilding = tokensA.some(
@@ -72,13 +62,9 @@ export function calculateLocationScore(locA, locB) {
   );
 
   if (hasSharedBuilding) return 0.85;
-
   return 0.2;
 }
 
-/**
- * Calculate temporal proximity score based on date difference in days
- */
 export function calculateDateScore(dateA, dateB) {
   if (!dateA || !dateB) return 0.5;
 
@@ -89,16 +75,13 @@ export function calculateDateScore(dateA, dateB) {
 
   const diffDays = Math.abs((timeB - timeA) / (1000 * 60 * 60 * 24));
 
-  if (diffDays <= 1) return 1.0;   // Same day or 1 day apart
-  if (diffDays <= 3) return 0.85;  // Within 3 days
-  if (diffDays <= 7) return 0.65;  // Within a week
-  if (diffDays <= 14) return 0.35; // Within 2 weeks
-  return 0.1;                      // Older than 2 weeks
+  if (diffDays <= 1) return 1.0;
+  if (diffDays <= 3) return 0.85;
+  if (diffDays <= 7) return 0.65;
+  if (diffDays <= 14) return 0.35;
+  return 0.1;
 }
 
-/**
- * Calculate color match score
- */
 export function calculateColorScore(colorA, colorB) {
   if (!colorA || !colorB) return 0.5;
   const a = colorA.toLowerCase().trim();
@@ -138,7 +121,7 @@ export function calculateMatchScore(lostItem, foundItem, customWeights = MATCH_W
   // 5. Color Score (0 to 1)
   const colorScore = calculateColorScore(lostItem.color, foundItem.color);
 
-  // 6. Image Score (Baseline visual / existence score)
+  // 6. Image Score (0 to 1)
   const imageScore = (lostItem.image_url && foundItem.image_url) ? 0.9 : 0.5;
 
   // Weighted aggregate total (0 to 100)
@@ -182,9 +165,6 @@ export function calculateMatchScore(lostItem, foundItem, customWeights = MATCH_W
   };
 }
 
-/**
- * Scan found items catalog for highest matches against a lost report
- */
 export function findMatchesForLostItem(lostItem, foundItemsList, minScoreThreshold = 40) {
   if (!lostItem || !Array.isArray(foundItemsList)) return [];
 
