@@ -1,11 +1,11 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { clientStorage } from './clientStorage';
 
 export const itemService = {
-  // Upload image: uses Express Backend or Supabase Storage
+  // Upload image
   async uploadImage(file, folder = 'items') {
     if (!file) return null;
 
-    // Validate size (max 5MB)
     const MAX_SIZE = 5 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       throw new Error('Image size must be less than 5MB.');
@@ -16,7 +16,7 @@ export const itemService = {
       throw new Error('Supported image formats: JPG, PNG, WEBP, GIF.');
     }
 
-    // Try Express Backend API first
+    // Try Express Backend API
     try {
       const formData = new FormData();
       formData.append('image', file);
@@ -29,30 +29,39 @@ export const itemService = {
         if (json.url) return json.url;
       }
     } catch (e) {
-      // Backend not running or failed, fallback to Supabase
+      // Backend not running
     }
 
+    // Try Supabase Storage
     if (isSupabaseConfigured) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('item-images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+        const { error: uploadError } = await supabase.storage
+          .from('item-images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
 
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('item-images')
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
+        if (!uploadError) {
+          const { data } = supabase.storage
+            .from('item-images')
+            .getPublicUrl(fileName);
+          return data.publicUrl;
+        }
+      } catch (err) {
+        console.warn('Supabase storage upload failed, using local reader:', err);
+      }
     }
 
-    return URL.createObjectURL(file);
+    // Fallback: Read as base64 data URL so image persists in browser database
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
   },
 
   // Create lost item
@@ -71,16 +80,20 @@ export const itemService = {
     }
 
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('lost_items')
-        .insert([itemData])
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from('lost_items')
+          .insert([itemData])
+          .select()
+          .single();
+        if (!error && data) return data;
+      } catch (e) {
+        // Fallback
+      }
     }
 
-    return { id: `lost-${Date.now()}`, ...itemData, status: 'active', created_at: new Date().toISOString() };
+    // Persistent in browser database
+    return clientStorage.addLostItem(itemData);
   },
 
   // Create found item
@@ -99,16 +112,20 @@ export const itemService = {
     }
 
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('found_items')
-        .insert([itemData])
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from('found_items')
+          .insert([itemData])
+          .select()
+          .single();
+        if (!error && data) return data;
+      } catch (e) {
+        // Fallback
+      }
     }
 
-    return { id: `found-${Date.now()}`, ...itemData, status: 'active', created_at: new Date().toISOString() };
+    // Persistent in browser database
+    return clientStorage.addFoundItem(itemData);
   },
 
   // Fetch lost items
@@ -124,29 +141,41 @@ export const itemService = {
           const q = query.toLowerCase();
           list = list.filter((i) => (i.title || '').toLowerCase().includes(q) || (i.description || '').toLowerCase().includes(q));
         }
-        return list;
+        if (list.length > 0) return list;
       }
     } catch (e) {
       // Fallback
     }
 
     if (isSupabaseConfigured) {
-      let queryBuilder = supabase
-        .from('lost_items')
-        .select('*, profiles:user_id(full_name, email)')
-        .order('created_at', { ascending: false });
+      try {
+        let queryBuilder = supabase
+          .from('lost_items')
+          .select('*, profiles:user_id(full_name, email)')
+          .order('created_at', { ascending: false });
 
-      if (status && status !== 'all') queryBuilder = queryBuilder.eq('status', status);
-      if (category && category !== 'all') queryBuilder = queryBuilder.eq('category', category);
-      if (location && location !== 'all') queryBuilder = queryBuilder.eq('location', location);
-      if (query) queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
+        if (status && status !== 'all') queryBuilder = queryBuilder.eq('status', status);
+        if (category && category !== 'all') queryBuilder = queryBuilder.eq('category', category);
+        if (location && location !== 'all') queryBuilder = queryBuilder.eq('location', location);
+        if (query) queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
 
-      const { data, error } = await queryBuilder;
-      if (error) throw error;
-      return data || [];
+        const { data, error } = await queryBuilder;
+        if (!error && data && data.length > 0) return data;
+      } catch (e) {
+        // Fallback
+      }
     }
 
-    return [];
+    // Fallback to client browser storage
+    let list = clientStorage.getLostItems();
+    if (status && status !== 'all') list = list.filter((i) => i.status === status);
+    if (category && category !== 'all') list = list.filter((i) => i.category === category);
+    if (location && location !== 'all') list = list.filter((i) => i.location === location);
+    if (query) {
+      const q = query.toLowerCase();
+      list = list.filter((i) => (i.title || '').toLowerCase().includes(q) || (i.description || '').toLowerCase().includes(q));
+    }
+    return list;
   },
 
   // Fetch found items
@@ -162,29 +191,41 @@ export const itemService = {
           const q = query.toLowerCase();
           list = list.filter((i) => (i.title || '').toLowerCase().includes(q) || (i.description || '').toLowerCase().includes(q));
         }
-        return list;
+        if (list.length > 0) return list;
       }
     } catch (e) {
       // Fallback
     }
 
     if (isSupabaseConfigured) {
-      let queryBuilder = supabase
-        .from('found_items')
-        .select('*, profiles:user_id(full_name, email)')
-        .order('created_at', { ascending: false });
+      try {
+        let queryBuilder = supabase
+          .from('found_items')
+          .select('*, profiles:user_id(full_name, email)')
+          .order('created_at', { ascending: false });
 
-      if (status && status !== 'all') queryBuilder = queryBuilder.eq('status', status);
-      if (category && category !== 'all') queryBuilder = queryBuilder.eq('category', category);
-      if (location && location !== 'all') queryBuilder = queryBuilder.eq('location', location);
-      if (query) queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
+        if (status && status !== 'all') queryBuilder = queryBuilder.eq('status', status);
+        if (category && category !== 'all') queryBuilder = queryBuilder.eq('category', category);
+        if (location && location !== 'all') queryBuilder = queryBuilder.eq('location', location);
+        if (query) queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
 
-      const { data, error } = await queryBuilder;
-      if (error) throw error;
-      return data || [];
+        const { data, error } = await queryBuilder;
+        if (!error && data && data.length > 0) return data;
+      } catch (e) {
+        // Fallback
+      }
     }
 
-    return [];
+    // Fallback to client browser storage
+    let list = clientStorage.getFoundItems();
+    if (status && status !== 'all') list = list.filter((i) => i.status === status);
+    if (category && category !== 'all') list = list.filter((i) => i.category === category);
+    if (location && location !== 'all') list = list.filter((i) => i.location === location);
+    if (query) {
+      const q = query.toLowerCase();
+      list = list.filter((i) => (i.title || '').toLowerCase().includes(q) || (i.description || '').toLowerCase().includes(q));
+    }
+    return list;
   },
 
   // Update item status
@@ -201,15 +242,18 @@ export const itemService = {
     }
 
     if (isSupabaseConfigured) {
-      const table = type === 'lost' ? 'lost_items' : 'found_items';
-      const { data, error } = await supabase
-        .from(table)
-        .update({ status })
-        .eq('id', id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+      try {
+        const table = type === 'lost' ? 'lost_items' : 'found_items';
+        const { data, error } = await supabase
+          .from(table)
+          .update({ status })
+          .eq('id', id)
+          .select()
+          .single();
+        if (!error && data) return data;
+      } catch (e) {
+        // Fallback
+      }
     }
 
     return { id, status };

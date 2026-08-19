@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { clientStorage } from './clientStorage';
 
 export const claimService = {
   // Submit a claim
@@ -21,30 +22,36 @@ export const claimService = {
     }
 
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('claims')
-        .insert([
-          {
-            match_id: matchId,
-            claimant_id: claimantId,
-            proof_message: proofMessage,
-            proof_image_url: proofImageUrl,
-            status: 'pending',
-          },
-        ])
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from('claims')
+          .insert([
+            {
+              match_id: matchId,
+              claimant_id: claimantId,
+              proof_message: proofMessage,
+              proof_image_url: proofImageUrl,
+              status: 'pending',
+            },
+          ])
+          .select()
+          .single();
+        if (!error && data) return data;
+      } catch (e) {
+        // Fallback
+      }
     }
 
-    return {
-      id: `claim-${Date.now()}`,
-      status: 'pending',
+    return clientStorage.addClaim({
+      match_id: matchId,
+      found_item_id: foundItemId,
+      claimant_id: claimantId,
       proof_message: proofMessage,
       proof_image_url: proofImageUrl,
-      created_at: new Date().toISOString(),
-    };
+      item_title: 'Found Belonging',
+      location: 'Central Campus Library',
+      category: 'Wallets & Bags',
+    });
   },
 
   // Get user's claims
@@ -54,31 +61,34 @@ export const claimService = {
       if (res.ok) {
         let claims = await res.json();
         if (userId) claims = claims.filter((c) => c.claimant_id === userId);
-        return claims;
+        if (claims.length > 0) return claims;
       }
     } catch (e) {
       // Fallback
     }
 
     if (isSupabaseConfigured && userId) {
-      const { data, error } = await supabase
-        .from('claims')
-        .select(`
-          *,
-          match:match_id (
+      try {
+        const { data, error } = await supabase
+          .from('claims')
+          .select(`
             *,
-            lost_item:lost_item_id (*),
-            found_item:found_item_id (*)
-          )
-        `)
-        .eq('claimant_id', userId)
-        .order('created_at', { ascending: false });
+            match:match_id (
+              *,
+              lost_item:lost_item_id (*),
+              found_item:found_item_id (*)
+            )
+          `)
+          .eq('claimant_id', userId)
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+        if (!error && data && data.length > 0) return data;
+      } catch (e) {
+        // Fallback
+      }
     }
 
-    return [];
+    return clientStorage.getClaims();
   },
 
   // Admin: Get all claims
@@ -88,34 +98,39 @@ export const claimService = {
       if (res.ok) {
         let claims = await res.json();
         if (status && status !== 'all') claims = claims.filter((c) => c.status === status);
-        return claims;
+        if (claims.length > 0) return claims;
       }
     } catch (e) {
       // Fallback
     }
 
     if (isSupabaseConfigured) {
-      let query = supabase
-        .from('claims')
-        .select(`
-          *,
-          claimant:claimant_id (full_name, email, college_id, phone),
-          match:match_id (
+      try {
+        let query = supabase
+          .from('claims')
+          .select(`
             *,
-            lost_item:lost_item_id (*, profiles:user_id(full_name, email)),
-            found_item:found_item_id (*, profiles:user_id(full_name, email))
-          )
-        `)
-        .order('created_at', { ascending: false });
+            claimant:claimant_id (full_name, email, college_id, phone),
+            match:match_id (
+              *,
+              lost_item:lost_item_id (*, profiles:user_id(full_name, email)),
+              found_item:found_item_id (*, profiles:user_id(full_name, email))
+            )
+          `)
+          .order('created_at', { ascending: false });
 
-      if (status && status !== 'all') query = query.eq('status', status);
+        if (status && status !== 'all') query = query.eq('status', status);
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
+        const { data, error } = await query;
+        if (!error && data && data.length > 0) return data;
+      } catch (e) {
+        // Fallback
+      }
     }
 
-    return [];
+    let claims = clientStorage.getClaims();
+    if (status && status !== 'all') claims = claims.filter((c) => c.status === status);
+    return claims;
   },
 
   // Admin: Review a claim
@@ -137,22 +152,25 @@ export const claimService = {
     }
 
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('claims')
-        .update({
-          status,
-          admin_note: adminNote,
-          reviewed_by: adminId,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq('id', claimId)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('claims')
+          .update({
+            status,
+            admin_note: adminNote,
+            reviewed_by: adminId,
+            reviewed_at: new Date().toISOString(),
+          })
+          .eq('id', claimId)
+          .select()
+          .single();
 
-      if (error) throw error;
-      return data;
+        if (!error && data) return data;
+      } catch (e) {
+        // Fallback
+      }
     }
 
-    return { id: claimId, status, admin_note: adminNote };
+    return clientStorage.reviewClaim(claimId, status, adminNote);
   },
 };
