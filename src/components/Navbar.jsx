@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
 import { 
   Sparkles, 
   Search, 
@@ -142,67 +143,73 @@ export default function Navbar() {
           {/* Action / User Profile Section */}
           <div className="flex items-center gap-3">
             {user ? (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition"
-                >
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="hidden sm:flex flex-col text-left">
-                    <span className="text-xs font-medium text-slate-200 max-w-[120px] truncate">
-                      {displayName}
-                    </span>
-                    <span className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wide">
-                      {isAdmin ? 'Admin' : 'Student'}
-                    </span>
-                  </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                </button>
+              <div className="flex items-center gap-2.5">
+                {/* Notification Bell */}
+                <NotificationBell />
 
-                {/* Dropdown Menu */}
-                {menuOpen && (
-                  <div 
-                    className="absolute right-0 mt-2 w-56 rounded-2xl glass-card border border-slate-800 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100"
-                    onClick={() => setMenuOpen(false)}
+                {/* Profile Dropdown */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition"
                   >
-                    <div className="px-4 py-2 border-b border-slate-800/80">
-                      <p className="text-xs font-semibold text-slate-200 truncate">{displayName}</p>
-                      <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                      {displayName.charAt(0).toUpperCase()}
                     </div>
+                    <div className="hidden sm:flex flex-col text-left">
+                      <span className="text-xs font-medium text-slate-200 max-w-[120px] truncate">
+                        {displayName}
+                      </span>
+                      <span className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wide">
+                        {isAdmin ? 'Admin' : 'Student'}
+                      </span>
+                    </div>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  </button>
 
-                    <Link
-                      to="/dashboard"
-                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/60"
+                  {/* Dropdown Menu */}
+                  {menuOpen && (
+                    <div 
+                      className="absolute right-0 mt-2 w-56 rounded-2xl glass-card border border-slate-800 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100"
+                      onClick={() => setMenuOpen(false)}
                     >
-                      <LayoutDashboard className="w-4 h-4 text-indigo-400" />
-                      Dashboard
-                    </Link>
+                      <div className="px-4 py-2 border-b border-slate-800/80">
+                        <p className="text-xs font-semibold text-slate-200 truncate">{displayName}</p>
+                        <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+                      </div>
 
-                    {isAdmin && (
                       <Link
-                        to="/admin"
-                        className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-purple-300 hover:text-purple-200 hover:bg-purple-950/40"
+                        to="/dashboard"
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/60"
                       >
-                        <ShieldCheck className="w-4 h-4 text-purple-400" />
-                        Admin Dashboard
+                        <LayoutDashboard className="w-4 h-4 text-indigo-400" />
+                        Dashboard
                       </Link>
-                    )}
 
-                    <div className="my-1 border-t border-slate-800/80" />
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-purple-300 hover:text-purple-200 hover:bg-purple-950/40"
+                        >
+                          <ShieldCheck className="w-4 h-4 text-purple-400" />
+                          Admin Dashboard
+                        </Link>
+                      )}
 
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 cursor-pointer"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </button>
-                  </div>
-                )}
+                      <div className="my-1 border-t border-slate-800/80" />
+
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="flex items-center gap-2.5">
