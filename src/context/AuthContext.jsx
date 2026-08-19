@@ -6,8 +6,8 @@ const AuthContext = createContext(null);
 
 export const DEMO_USERS = {
   student: {
-    id: 'demo-student-uuid-0001',
-    email: 'student@campus.edu',
+    id: 'usr-student-1',
+    email: 'alex@campus.edu',
     user_metadata: {
       full_name: 'Alex Johnson',
       college_id: 'CS-2024-042',
@@ -16,7 +16,7 @@ export const DEMO_USERS = {
     },
   },
   admin: {
-    id: 'demo-admin-uuid-0002',
+    id: 'usr-admin-1',
     email: 'admin@campus.edu',
     user_metadata: {
       full_name: 'Dr. Sarah Mitchell (Campus Security Admin)',

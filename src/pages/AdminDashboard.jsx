@@ -86,6 +86,30 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState(DEMO_ADMIN_DATA.users);
   const [auditLogs, setAuditLogs] = useState(DEMO_ADMIN_DATA.auditLogs);
 
+  useEffect(() => {
+    async function loadAdminData() {
+      try {
+        const [claimsRes, lostRes, foundRes, usersRes, logsRes] = await Promise.all([
+          fetch('/api/claims').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/items/lost').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/items/found').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/auth/users').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/admin/audit-logs').then((r) => (r.ok ? r.json() : null)),
+        ]);
+
+        if (claimsRes && claimsRes.length > 0) setClaims(claimsRes);
+        if (lostRes && lostRes.length > 0) setLostItems(lostRes);
+        if (foundRes && foundRes.length > 0) setFoundItems(foundRes);
+        if (usersRes && usersRes.length > 0) setUsers(usersRes);
+        if (logsRes && logsRes.length > 0) setAuditLogs(logsRes);
+      } catch (err) {
+        console.error('Error fetching admin live data:', err);
+      }
+    }
+
+    loadAdminData();
+  }, []);
+
   // Review Claim Modal State
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [reviewAction, setReviewAction] = useState('approve'); // 'approve' | 'reject'
