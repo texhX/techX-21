@@ -7,7 +7,9 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import ReportLost from './pages/ReportLost';
+import ReportFound from './pages/ReportFound';
 import LostItems from './pages/LostItems';
+import FoundItems from './pages/FoundItems';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -38,7 +40,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/lost-items" element={<LostItems />} />
-            <Route path="/found-items" element={<PlaceholderPage title="Found Items Directory" phase="6 (Found Items)" />} />
+            <Route path="/found-items" element={<FoundItems />} />
             <Route path="/search" element={<PlaceholderPage title="Search & Filter Items" phase="7 (Search)" />} />
 
             {/* Protected Student Routes */}
@@ -62,7 +64,7 @@ export default function App() {
               path="/report-found"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Report Found Item" phase="6 (Found Items)" />
+                  <ReportFound />
                 </ProtectedRoute>
               }
             />
