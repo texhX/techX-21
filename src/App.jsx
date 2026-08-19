@@ -10,6 +10,7 @@ import ReportLost from './pages/ReportLost';
 import ReportFound from './pages/ReportFound';
 import LostItems from './pages/LostItems';
 import FoundItems from './pages/FoundItems';
+import Search from './pages/Search';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -41,7 +42,7 @@ export default function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/lost-items" element={<LostItems />} />
             <Route path="/found-items" element={<FoundItems />} />
-            <Route path="/search" element={<PlaceholderPage title="Search & Filter Items" phase="7 (Search)" />} />
+            <Route path="/search" element={<Search />} />
 
             {/* Protected Student Routes */}
             <Route
