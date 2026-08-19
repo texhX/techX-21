@@ -5,11 +5,12 @@ import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
 // Placeholder views for subsequent phases
-function PlaceholderPage({ title, phase, badgeColor = 'indigo' }) {
+function PlaceholderPage({ title, phase }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
       <div className="inline-block px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-3">
@@ -43,7 +44,7 @@ export default function App() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Student Dashboard" phase="4 (Dashboard)" />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
